@@ -14,16 +14,268 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      alerts: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      deliveries: {
+        Row: {
+          created_at: string
+          delivery_time: string | null
+          donation_id: string
+          id: string
+          pickup_time: string | null
+          status: string
+          updated_at: string
+          volunteer_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_time?: string | null
+          donation_id: string
+          id?: string
+          pickup_time?: string | null
+          status?: string
+          updated_at?: string
+          volunteer_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_time?: string | null
+          donation_id?: string
+          id?: string
+          pickup_time?: string | null
+          status?: string
+          updated_at?: string
+          volunteer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliveries_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: false
+            referencedRelation: "donations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      donations: {
+        Row: {
+          cooking_time: string | null
+          created_at: string
+          description: string | null
+          donor_id: string
+          expiry_time: string | null
+          food_type: string
+          id: string
+          image_url: string | null
+          latitude: number | null
+          longitude: number | null
+          ngo_id: string | null
+          pickup_address: string | null
+          quantity: number
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cooking_time?: string | null
+          created_at?: string
+          description?: string | null
+          donor_id: string
+          expiry_time?: string | null
+          food_type?: string
+          id?: string
+          image_url?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          ngo_id?: string | null
+          pickup_address?: string | null
+          quantity?: number
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cooking_time?: string | null
+          created_at?: string
+          description?: string | null
+          donor_id?: string
+          expiry_time?: string | null
+          food_type?: string
+          id?: string
+          image_url?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          ngo_id?: string | null
+          pickup_address?: string | null
+          quantity?: number
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      impact_logs: {
+        Row: {
+          co2_reduced_kg: number
+          created_at: string
+          food_saved_kg: number
+          id: string
+          meals_served: number
+          user_id: string | null
+        }
+        Insert: {
+          co2_reduced_kg?: number
+          created_at?: string
+          food_saved_kg?: number
+          id?: string
+          meals_served?: number
+          user_id?: string | null
+        }
+        Update: {
+          co2_reduced_kg?: number
+          created_at?: string
+          food_saved_kg?: number
+          id?: string
+          meals_served?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          avatar_url: string | null
+          created_at: string
+          display_name: string
+          id: string
+          language: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          language?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          language?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ratings: {
+        Row: {
+          comment: string | null
+          created_at: string
+          donation_id: string | null
+          id: string
+          rated_by: string
+          rated_user: string
+          score: number
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          donation_id?: string | null
+          id?: string
+          rated_by: string
+          rated_user: string
+          score: number
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          donation_id?: string | null
+          id?: string
+          rated_by?: string
+          rated_user?: string
+          score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: false
+            referencedRelation: "donations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "donor" | "ngo" | "volunteer" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +402,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["donor", "ngo", "volunteer", "admin"],
+    },
   },
 } as const
