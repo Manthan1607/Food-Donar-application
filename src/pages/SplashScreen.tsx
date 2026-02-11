@@ -1,10 +1,14 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Heart, Leaf, Users, ArrowRight, Sparkles } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import heroImage from "@/assets/hero-food-sharing.jpg";
 
 const SplashScreen = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-background flex flex-col overflow-hidden relative">
@@ -98,7 +102,7 @@ const SplashScreen = () => {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card text-primary text-sm font-medium mb-4"
           >
             <Sparkles className="w-4 h-4" />
-            Reduce Waste. Feed Lives.
+            {t("app.tagline")}
           </motion.div>
 
           <motion.h1
@@ -107,8 +111,8 @@ const SplashScreen = () => {
             transition={{ delay: 0.6, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="text-4xl md:text-5xl font-display font-bold text-foreground mb-4 leading-tight"
           >
-            From Excess{" "}
-            <span className="text-gradient-primary">to Everyone</span>
+            {t("app.name").split(" ").slice(0, 2).join(" ")}{" "}
+            <span className="text-gradient-primary">{t("app.name").split(" ").slice(2).join(" ")}</span>
           </motion.h1>
 
           <motion.p
@@ -117,7 +121,7 @@ const SplashScreen = () => {
             transition={{ delay: 0.7, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="text-muted-foreground text-lg mb-8 leading-relaxed"
           >
-            Connect surplus food with those who need it most. Every meal matters.
+            {t("splash.subtitle")}
           </motion.p>
 
           <motion.button
@@ -126,10 +130,10 @@ const SplashScreen = () => {
             transition={{ delay: 0.8, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             whileHover={{ scale: 1.03, boxShadow: "0 0 40px hsl(160 60% 45% / 0.4)" }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => navigate("/select-role")}
+            onClick={() => navigate(user ? "/select-role" : "/auth")}
             className="gradient-primary text-primary-foreground px-8 py-4 rounded-2xl font-semibold text-lg shadow-xl flex items-center gap-3 mx-auto glow-primary"
           >
-            Get Started
+            {t("splash.getStarted")}
             <ArrowRight className="w-5 h-5" />
           </motion.button>
         </motion.div>
@@ -142,9 +146,9 @@ const SplashScreen = () => {
           className="relative z-10 flex gap-6 mt-12"
         >
           {[
-            { value: "12K+", label: "Meals Shared" },
-            { value: "500+", label: "Volunteers" },
-            { value: "85+", label: "NGOs" },
+            { value: "12K+", label: t("splash.mealsShared") },
+            { value: "500+", label: t("splash.volunteers") },
+            { value: "85+", label: t("splash.ngos") },
           ].map((stat, i) => (
             <motion.div 
               key={stat.label} 

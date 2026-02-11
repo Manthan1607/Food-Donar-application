@@ -1,6 +1,10 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Utensils, Building2, Bike, Shield } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useToast } from "@/hooks/use-toast";
 
 const roles = [
   {
@@ -67,6 +71,26 @@ const item = {
 
 const SelectRole = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { t } = useLanguage();
+  const { toast } = useToast();
+
+  const handleRoleSelect = async (roleId: string, route: string) => {
+    if (!user) return;
+    try {
+      await supabase.from("user_roles").upsert({ user_id: user.id, role: roleId as any }, { onConflict: "user_id,role" });
+      // Create welcome alert
+      await supabase.from("alerts").insert({
+        user_id: user.id,
+        title: "Welcome! 🎉",
+        message: `You've joined as a ${roleId}. Start making an impact today!`,
+        type: "success",
+      });
+      navigate(route);
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Error", description: err.message });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-12 relative">
@@ -83,9 +107,9 @@ const SelectRole = () => {
         className="text-center mb-10 relative z-10"
       >
         <h1 className="text-3xl font-display font-bold text-foreground mb-2">
-          Choose Your Role
+          {t("role.title")}
         </h1>
-        <p className="text-muted-foreground">How would you like to contribute?</p>
+        <p className="text-muted-foreground">{t("role.subtitle")}</p>
       </motion.div>
 
       <motion.div
@@ -104,7 +128,7 @@ const SelectRole = () => {
               boxShadow: `0 0 30px ${role.glowColor}`,
             }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => navigate(role.route)}
+            onClick={() => handleRoleSelect(role.id, role.route)}
             className="glass-card-strong rounded-3xl p-6 flex flex-col items-center text-center gap-3 group cursor-pointer relative overflow-hidden"
           >
             {/* Hover neon border effect */}

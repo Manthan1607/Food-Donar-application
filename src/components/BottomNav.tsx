@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Home, User, Bell, PieChart, Plus, LucideIcon } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface NavItemProps {
   icon: LucideIcon;
@@ -32,12 +33,13 @@ const NavItem = ({ icon: Icon, label, isActive, onClick }: NavItemProps) => (
 const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const navItems = [
-    { icon: Home, label: "Home", path: "/donor" },
-    { icon: PieChart, label: "Impact", path: "/impact" },
-    { icon: Bell, label: "Alerts", path: "/alerts" },
-    { icon: User, label: "Profile", path: "/profile" },
+    { icon: Home, label: t("nav.home"), path: "/donor" },
+    { icon: PieChart, label: t("nav.impact"), path: "/impact" },
+    { icon: Bell, label: t("nav.alerts"), path: "/alerts" },
+    { icon: User, label: t("nav.profile"), path: "/profile" },
   ];
 
   return (
