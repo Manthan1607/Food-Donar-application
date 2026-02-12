@@ -41,7 +41,7 @@ const roles = [
     icon: Shield,
     gradient: "from-muted-foreground to-foreground",
     glowColor: "hsl(220 10% 55% / 0.3)",
-    route: "/donor",
+    route: "/admin",
   },
 ];
 

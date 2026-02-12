@@ -8,6 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import BottomNav from "@/components/BottomNav";
 import StatsCard from "@/components/StatsCard";
 import VideoSection from "@/components/VideoSection";
+import SOSButton from "@/components/SOSButton";
 
 import foodBiryani from "@/assets/food-biryani.jpg";
 import foodBread from "@/assets/food-bread.jpg";
@@ -157,6 +158,7 @@ const DonorDashboard = () => {
         </motion.div>
       </div>
 
+      <SOSButton />
       <BottomNav />
     </div>
   );

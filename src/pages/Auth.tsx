@@ -124,6 +124,14 @@ const Auth = () => {
           <ArrowRight className="w-5 h-5" />
         </motion.button>
 
+        {isLogin && (
+          <p className="text-center">
+            <button type="button" onClick={() => navigate("/forgot-password")} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              Forgot password?
+            </button>
+          </p>
+        )}
+
         <p className="text-center text-sm text-muted-foreground">
           {isLogin ? t("auth.noAccount") : t("auth.hasAccount")}{" "}
           <button
