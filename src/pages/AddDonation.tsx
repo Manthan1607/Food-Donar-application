@@ -1,12 +1,13 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Camera, MapPin, Clock, Users, Leaf, Check, Sparkles, Image } from "lucide-react";
+import { ArrowLeft, Camera, MapPin, Clock, Users, Leaf, Check, Sparkles, Image, Upload, X, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import foodBiryani from "@/assets/food-biryani.jpg";
+import { useCamera } from "@/hooks/useCamera";
+import { useGeolocation } from "@/hooks/useGeolocation";
 
 const foodTypes = ["Veg", "Non-Veg", "Vegan"];
 
@@ -15,11 +16,12 @@ const AddDonation = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
+  const camera = useCamera();
+  const geo = useGeolocation();
   const [selectedType, setSelectedType] = useState("Veg");
   const [quantity, setQuantity] = useState("");
   const [description, setDescription] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const [hasPhoto, setHasPhoto] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async () => {
@@ -31,6 +33,19 @@ const AddDonation = () => {
     const expiryTime = new Date();
     expiryTime.setHours(expiryTime.getHours() + 4);
 
+    let imageUrl: string | null = null;
+
+    // Upload photo if captured
+    if (camera.photoFile) {
+      const ext = camera.photoFile.name.split(".").pop();
+      const filePath = `${user.id}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("food-images").upload(filePath, camera.photoFile);
+      if (!uploadError) {
+        const { data: urlData } = supabase.storage.from("food-images").getPublicUrl(filePath);
+        imageUrl = urlData.publicUrl;
+      }
+    }
+
     const { error } = await supabase.from("donations").insert({
       donor_id: user.id,
       title: description,
@@ -38,7 +53,10 @@ const AddDonation = () => {
       food_type: selectedType.toLowerCase().replace("-", "_"),
       quantity: parseInt(quantity),
       expiry_time: expiryTime.toISOString(),
-      pickup_address: "Auto-detected location",
+      pickup_address: geo.latitude ? `${geo.latitude.toFixed(4)}, ${geo.longitude?.toFixed(4)}` : "Auto-detected location",
+      latitude: geo.latitude,
+      longitude: geo.longitude,
+      image_url: imageUrl,
       status: "pending",
     });
 
@@ -48,7 +66,6 @@ const AddDonation = () => {
       return;
     }
 
-    // Create alert for the donor
     await supabase.from("alerts").insert({
       user_id: user.id,
       title: "Donation Created! 🎉",
@@ -56,7 +73,6 @@ const AddDonation = () => {
       type: "success",
     });
 
-    // Create impact log
     await supabase.from("impact_logs").insert({
       user_id: user.id,
       meals_served: parseInt(quantity),
@@ -104,17 +120,41 @@ const AddDonation = () => {
       </div>
 
       <div className="relative z-10 px-6 space-y-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} onClick={() => setHasPhoto(!hasPhoto)} className={`rounded-3xl overflow-hidden cursor-pointer group relative ${hasPhoto ? "h-48" : "glass-card p-6 flex flex-col items-center justify-center min-h-[180px] border-2 border-dashed border-primary/30"}`}>
-          {hasPhoto ? (
+        {/* Photo capture area */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={`rounded-3xl overflow-hidden relative ${camera.photoUrl ? "h-48" : "glass-card p-6 flex flex-col items-center justify-center min-h-[180px] border-2 border-dashed border-primary/30"}`}>
+          {camera.photoUrl ? (
             <>
-              <img src={foodBiryani} alt="Food preview" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+              <img src={camera.photoUrl} alt="Food preview" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
-              <div className="absolute bottom-4 left-4 flex items-center gap-2 text-foreground text-sm font-medium"><Image className="w-4 h-4" />Tap to change</div>
+              <button onClick={camera.clearPhoto} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/80 flex items-center justify-center">
+                <X className="w-4 h-4 text-foreground" />
+              </button>
+              {camera.gpsMetadata && (
+                <div className="absolute bottom-3 left-3 flex items-center gap-1 glass-card px-2 py-1 rounded-lg text-xs text-foreground">
+                  <MapPin className="w-3 h-3 text-primary" />
+                  {camera.gpsMetadata.lat.toFixed(4)}, {camera.gpsMetadata.lng.toFixed(4)}
+                </div>
+              )}
+              {camera.timestamp && (
+                <div className="absolute bottom-3 right-3 glass-card px-2 py-1 rounded-lg text-xs text-muted-foreground">
+                  {new Date(camera.timestamp).toLocaleTimeString()}
+                </div>
+              )}
             </>
+          ) : camera.loading ? (
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           ) : (
             <>
-              <div className="w-14 h-14 rounded-2xl glass-light flex items-center justify-center mb-3"><Camera className="w-7 h-7 text-primary" /></div>
+              <div className="flex gap-4 mb-3">
+                <motion.button whileTap={{ scale: 0.95 }} onClick={camera.captureFromCamera} className="w-14 h-14 rounded-2xl glass-light flex items-center justify-center">
+                  <Camera className="w-7 h-7 text-primary" />
+                </motion.button>
+                <motion.button whileTap={{ scale: 0.95 }} onClick={camera.pickFromGallery} className="w-14 h-14 rounded-2xl glass-light flex items-center justify-center">
+                  <Upload className="w-7 h-7 text-secondary" />
+                </motion.button>
+              </div>
               <p className="font-medium text-foreground text-sm">{t("donation.photo")}</p>
+              <p className="text-xs text-muted-foreground mt-1">Camera or Gallery · Auto-compressed</p>
             </>
           )}
         </motion.div>
@@ -143,16 +183,21 @@ const AddDonation = () => {
           </div>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="glass-card rounded-2xl p-4 flex items-center gap-3 relative overflow-hidden group">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="glass-card rounded-2xl p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center"><Clock className="w-5 h-5 text-secondary" /></div>
           <div className="flex-1"><p className="text-sm font-medium text-foreground">Best Before</p><p className="text-xs text-muted-foreground">Food expires in ~4 hours</p></div>
           <div className="px-3 py-1.5 rounded-full bg-secondary/20 text-secondary text-xs font-semibold neon-outline-warm">4:00 hrs</div>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="glass-card rounded-2xl p-4 flex items-center gap-3">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} onClick={() => geo.requestLocation()} className="glass-card rounded-2xl p-4 flex items-center gap-3 cursor-pointer">
           <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center"><MapPin className="w-5 h-5 text-primary" /></div>
-          <div className="flex-1"><p className="text-sm font-medium text-foreground">Pickup Location</p><p className="text-xs text-muted-foreground">Auto-detected: Andheri West, Mumbai</p></div>
-          <Sparkles className="w-4 h-4 text-primary" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-foreground">Pickup Location</p>
+            <p className="text-xs text-muted-foreground">
+              {geo.loading ? "Detecting..." : geo.latitude ? `📍 ${geo.latitude.toFixed(4)}, ${geo.longitude?.toFixed(4)}` : geo.permissionDenied ? "Location denied — tap to retry" : "Tap to detect location"}
+            </p>
+          </div>
+          {geo.loading ? <Loader2 className="w-4 h-4 animate-spin text-primary" /> : <Sparkles className="w-4 h-4 text-primary" />}
         </motion.div>
 
         <motion.button
