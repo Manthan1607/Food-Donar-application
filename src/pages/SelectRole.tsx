@@ -23,7 +23,7 @@ const roles = [
     icon: Building2,
     gradient: "from-secondary to-orange-400",
     glowColor: "hsl(30 85% 55% / 0.3)",
-    route: "/donor",
+    route: "/ngo",
   },
   {
     id: "volunteer",
@@ -32,7 +32,7 @@ const roles = [
     icon: Bike,
     gradient: "from-accent to-teal-400",
     glowColor: "hsl(175 55% 42% / 0.3)",
-    route: "/donor",
+    route: "/volunteer",
   },
   {
     id: "admin",

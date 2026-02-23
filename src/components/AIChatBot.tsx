@@ -1,12 +1,19 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Bot, User, Loader2 } from "lucide-react";
+import { MessageCircle, X, Send, Bot, User, Loader2, Sparkles, Zap, Shield } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ReactMarkdown from "react-markdown";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+
+const quickActions = [
+  { label: "🍛 Food Safety Tips", prompt: "What are the best food safety tips for donating cooked food?" },
+  { label: "🕐 Spoilage Check", prompt: "How long can cooked rice last before it spoils?" },
+  { label: "🤝 Find NGOs", prompt: "How can I find nearby NGOs to donate food to?" },
+  { label: "🌱 My Impact", prompt: "How much environmental impact does donating 10 meals create?" },
+];
 
 const AIChatBot = () => {
   const { t } = useLanguage();
@@ -20,15 +27,22 @@ const AIChatBot = () => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
-    const userMsg: Msg = { role: "user", content: input.trim() };
-    setInput("");
+  const sendMessage = async (text?: string) => {
+    const msgText = text || input.trim();
+    if (!msgText || isLoading) return;
+    const userMsg: Msg = { role: "user", content: msgText };
+    if (!text) setInput("");
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
 
     let assistantSoFar = "";
     const allMessages = [...messages, userMsg];
+
+    // Detect mode
+    const lowerMsg = msgText.toLowerCase();
+    let mode = "general";
+    if (lowerMsg.includes("spoil") || lowerMsg.includes("expir") || lowerMsg.includes("last") || lowerMsg.includes("shelf life")) mode = "spoilage";
+    if (lowerMsg.includes("ngo") || lowerMsg.includes("match") || lowerMsg.includes("near")) mode = "matching";
 
     try {
       const resp = await fetch(CHAT_URL, {
@@ -37,10 +51,12 @@ const AIChatBot = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: allMessages }),
+        body: JSON.stringify({ messages: allMessages, mode }),
       });
 
       if (!resp.ok || !resp.body) {
+        if (resp.status === 429) throw new Error("Rate limited. Please wait a moment and try again.");
+        if (resp.status === 402) throw new Error("AI credits exhausted. Please try again later.");
         const errData = await resp.json().catch(() => ({}));
         throw new Error(errData.error || "Failed to connect");
       }
@@ -103,7 +119,7 @@ const AIChatBot = () => {
             onClick={() => setOpen(true)}
             className="fixed bottom-24 right-4 z-50 w-14 h-14 rounded-full gradient-primary flex items-center justify-center shadow-xl glow-primary"
           >
-            <MessageCircle className="w-6 h-6 text-primary-foreground" />
+            <Sparkles className="w-6 h-6 text-primary-foreground" />
           </motion.button>
         )}
       </AnimatePresence>
@@ -117,17 +133,21 @@ const AIChatBot = () => {
             exit={{ opacity: 0, y: 100, scale: 0.9 }}
             transition={{ duration: 0.3 }}
             className="fixed bottom-4 left-4 right-4 max-w-md mx-auto z-50 glass-card-strong rounded-3xl overflow-hidden flex flex-col"
-            style={{ height: "70vh", maxHeight: "500px" }}
+            style={{ height: "75vh", maxHeight: "550px" }}
           >
             {/* Header */}
             <div className="px-4 py-3 flex items-center justify-between border-b border-border">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center">
+                <div className="w-9 h-9 rounded-full gradient-primary flex items-center justify-center relative">
                   <Bot className="w-4 h-4 text-primary-foreground" />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-primary border-2 border-background" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">{t("chat.title")}</p>
-                  <p className="text-xs text-primary">Online</p>
+                  <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                    AI Food Assistant
+                    <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-normal">Smart</span>
+                  </p>
+                  <p className="text-xs text-primary">Powered by AI • Online</p>
                 </div>
               </div>
               <motion.button whileTap={{ scale: 0.9 }} onClick={() => setOpen(false)}>
@@ -138,9 +158,26 @@ const AIChatBot = () => {
             {/* Messages */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
               {messages.length === 0 && (
-                <div className="text-center py-8">
-                  <Bot className="w-10 h-10 text-primary mx-auto mb-3 opacity-60" />
-                  <p className="text-sm text-muted-foreground">Ask me about food donation, NGOs, or food safety! 🍽️</p>
+                <div className="space-y-4">
+                  <div className="text-center py-4">
+                    <div className="w-16 h-16 rounded-full gradient-primary flex items-center justify-center mx-auto mb-3 glow-primary">
+                      <Sparkles className="w-8 h-8 text-primary-foreground" />
+                    </div>
+                    <p className="text-sm font-semibold text-foreground mb-1">Smart Food AI</p>
+                    <p className="text-xs text-muted-foreground">Spoilage prediction • NGO matching • Food safety</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {quickActions.map((action) => (
+                      <motion.button
+                        key={action.label}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => sendMessage(action.prompt)}
+                        className="glass-card rounded-xl p-3 text-left hover:bg-muted/30 transition-colors"
+                      >
+                        <p className="text-xs font-medium text-foreground">{action.label}</p>
+                      </motion.button>
+                    ))}
+                  </div>
                 </div>
               )}
               {messages.map((msg, i) => (
@@ -182,8 +219,9 @@ const AIChatBot = () => {
                   <div className="w-6 h-6 rounded-full gradient-primary flex items-center justify-center shrink-0">
                     <Bot className="w-3 h-3 text-primary-foreground" />
                   </div>
-                  <div className="glass-card px-3 py-2 rounded-2xl rounded-bl-md">
+                  <div className="glass-card px-3 py-2 rounded-2xl rounded-bl-md flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    <span className="text-xs text-muted-foreground">Thinking...</span>
                   </div>
                 </div>
               )}
@@ -195,12 +233,12 @@ const AIChatBot = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                placeholder={t("chat.placeholder")}
+                placeholder="Ask about food safety, spoilage, NGOs..."
                 className="flex-1 glass-card rounded-xl px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
               />
               <motion.button
                 whileTap={{ scale: 0.9 }}
-                onClick={sendMessage}
+                onClick={() => sendMessage()}
                 disabled={!input.trim() || isLoading}
                 className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center disabled:opacity-50"
               >
