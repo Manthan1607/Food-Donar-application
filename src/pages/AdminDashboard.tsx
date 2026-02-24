@@ -1,31 +1,28 @@
-import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Shield, Users, Package, AlertTriangle, TrendingUp, Search,
-  ChevronRight, MapPin, Activity, Download, Filter, BarChart3,
-  Eye, Ban, CheckCircle2, Clock, ArrowLeft, Bell
+  ChevronRight, Activity, Download, BarChart3, Eye,
+  CheckCircle2, ArrowLeft, Bell, Sparkles
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import adminVideo from "@/assets/admin-hero.mp4";
 
-interface UserProfile {
-  user_id: string;
-  display_name: string;
-  phone: string | null;
-  created_at: string;
-}
+interface UserProfile { user_id: string; display_name: string; phone: string | null; created_at: string; }
+interface DonationRow { id: string; title: string; status: string; quantity: number; food_type: string; created_at: string; donor_id: string; }
 
-interface DonationRow {
-  id: string;
-  title: string;
-  status: string;
-  quantity: number;
-  food_type: string;
-  created_at: string;
-  donor_id: string;
-}
+const ScrollReveal = ({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-30px" });
+  return (
+    <motion.div ref={ref} initial={{ opacity: 0, y: 30 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }} className={className}>
+      {children}
+    </motion.div>
+  );
+};
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -50,19 +47,12 @@ const AdminDashboard = () => {
       supabase.from("donations").select("*").order("created_at", { ascending: false }).limit(50),
       supabase.from("impact_logs").select("meals_served"),
     ]);
-
     const profileData = profilesRes.data || [];
     const donationData = donationsRes.data || [];
     const totalMeals = (impactRes.data || []).reduce((s, r) => s + (r.meals_served || 0), 0);
-
     setUsers(profileData);
     setDonations(donationData);
-    setStats({
-      totalUsers: profileData.length,
-      totalDonations: donationData.length,
-      activeDonations: donationData.filter((d) => d.status === "pending").length,
-      totalMeals,
-    });
+    setStats({ totalUsers: profileData.length, totalDonations: donationData.length, activeDonations: donationData.filter(d => d.status === "pending").length, totalMeals });
     setLoading(false);
   };
 
@@ -75,8 +65,8 @@ const AdminDashboard = () => {
     return `${Math.floor(h / 24)}d`;
   };
 
-  const filteredUsers = users.filter((u) => u.display_name?.toLowerCase().includes(searchQuery.toLowerCase()));
-  const filteredDonations = donations.filter((d) => d.title?.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredUsers = users.filter(u => u.display_name?.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredDonations = donations.filter(d => d.title?.toLowerCase().includes(searchQuery.toLowerCase()));
 
   const statCards = [
     { label: "Total Users", value: stats.totalUsers, icon: Users, color: "text-primary" },
@@ -92,113 +82,128 @@ const AdminDashboard = () => {
     { id: "alerts" as const, label: "Alerts", icon: Bell },
   ];
 
+  const exportCSV = (type: "users" | "donations") => {
+    const content = type === "users"
+      ? "Name,Phone,Joined\n" + users.map(u => `${u.display_name},${u.phone || "N/A"},${new Date(u.created_at).toLocaleDateString()}`).join("\n")
+      : "Title,Type,Qty,Status,Date\n" + donations.map(d => `${d.title},${d.food_type},${d.quantity},${d.status},${new Date(d.created_at).toLocaleDateString()}`).join("\n");
+    const blob = new Blob([content], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `${type}-report.csv`; a.click();
+    toast({ title: "📊 Report downloaded!" });
+  };
+
   return (
-    <div className="min-h-screen bg-background pb-8 relative">
+    <div className="min-h-screen bg-background pb-8 relative overflow-x-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-primary/6 blur-[100px] animate-ambient" />
-        <div className="absolute bottom-1/3 left-0 w-64 h-64 rounded-full bg-secondary/5 blur-[80px] animate-ambient" style={{ animationDelay: "-5s" }} />
+        <motion.div animate={{ x: [0, 25, -15, 0], y: [0, -10, 15, 0] }} transition={{ duration: 18, repeat: Infinity }} className="absolute top-0 right-0 w-80 h-80 rounded-full bg-primary/8 blur-[120px]" />
+        <motion.div animate={{ x: [0, -20, 10, 0], y: [0, 10, -20, 0] }} transition={{ duration: 22, repeat: Infinity }} className="absolute bottom-1/3 left-0 w-64 h-64 rounded-full bg-secondary/6 blur-[100px]" />
       </div>
 
-      {/* Header */}
-      <div className="relative z-10 px-6 pt-12 pb-4">
-        <div className="flex items-center gap-3 mb-6">
-          <motion.button initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} whileTap={{ scale: 0.9 }} onClick={() => navigate("/select-role")} className="w-11 h-11 rounded-full glass-card flex items-center justify-center">
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </motion.button>
-          <div className="flex-1">
-            <motion.h1 initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-xl font-display font-bold text-foreground flex items-center gap-2">
-              <Shield className="w-5 h-5 text-primary" /> Admin Panel
-            </motion.h1>
-            <p className="text-xs text-muted-foreground">Control Center</p>
+      {/* Video Hero */}
+      <div className="relative h-[26vh] overflow-hidden">
+        <motion.video initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }} src={adminVideo} autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/30 to-transparent" />
+
+        <div className="absolute inset-0 flex items-end px-6 pb-5 z-10">
+          <div className="flex items-center gap-3 w-full">
+            <motion.button initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} whileTap={{ scale: 0.9 }} onClick={() => navigate("/select-role")} className="w-11 h-11 rounded-full glass-card-strong flex items-center justify-center">
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </motion.button>
+            <div className="flex-1">
+              <motion.h1 initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
+                <Shield className="w-5 h-5 text-primary" /> Admin Panel
+              </motion.h1>
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-xs text-muted-foreground">Control Center</motion.p>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {tabs.map((tab) => (
-            <motion.button key={tab.id} whileTap={{ scale: 0.95 }} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${activeTab === tab.id ? "gradient-primary text-primary-foreground glow-primary" : "glass-card text-muted-foreground"}`}>
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
-            </motion.button>
-          ))}
-        </div>
+      {/* Tabs */}
+      <div className="px-6 -mt-2 relative z-10">
+        <ScrollReveal>
+          <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide">
+            {tabs.map(tab => (
+              <motion.button key={tab.id} whileTap={{ scale: 0.95 }} onClick={() => { setActiveTab(tab.id); setSearchQuery(""); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${activeTab === tab.id ? "gradient-primary text-primary-foreground glow-primary" : "glass-card text-muted-foreground"}`}>
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
+              </motion.button>
+            ))}
+          </div>
+        </ScrollReveal>
       </div>
 
       <div className="relative z-10 px-6">
-        {/* Stats */}
-        {activeTab === "overview" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              {statCards.map((s, i) => (
-                <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }} className="glass-card-strong rounded-2xl p-4">
-                  <s.icon className={`w-5 h-5 ${s.color} mb-2`} />
-                  <p className="text-2xl font-display font-bold text-foreground">{loading ? "—" : s.value}</p>
-                  <p className="text-xs text-muted-foreground">{s.label}</p>
-                </motion.div>
-              ))}
-            </div>
+        <AnimatePresence mode="wait">
+          {/* Overview */}
+          {activeTab === "overview" && (
+            <motion.div key="overview" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                {statCards.map((s, i) => (
+                  <ScrollReveal key={s.label} delay={i * 0.06}>
+                    <motion.div whileHover={{ y: -3, scale: 1.02 }} className="glass-card-strong rounded-2xl p-4">
+                      <s.icon className={`w-5 h-5 ${s.color} mb-2`} />
+                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 + i * 0.1 }} className="text-2xl font-display font-bold text-foreground">{loading ? "—" : s.value}</motion.p>
+                      <p className="text-xs text-muted-foreground">{s.label}</p>
+                    </motion.div>
+                  </ScrollReveal>
+                ))}
+              </div>
 
-            {/* Recent activity */}
-            <div className="glass-card-strong rounded-3xl p-5">
-              <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2"><Activity className="w-4 h-4 text-primary" /> Recent Activity</h3>
-              {donations.slice(0, 5).map((d, i) => (
-                <div key={d.id} className={`flex items-center gap-3 py-3 ${i < 4 ? "border-b border-border" : ""}`}>
-                  <div className={`w-2 h-2 rounded-full ${d.status === "pending" ? "bg-secondary" : d.status === "delivered" ? "bg-primary" : "bg-muted-foreground"}`} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-foreground truncate">{d.title}</p>
-                    <p className="text-xs text-muted-foreground">{d.food_type} · {d.quantity} servings</p>
+              {/* Video strip */}
+              <ScrollReveal delay={0.15}>
+                <div className="relative rounded-2xl overflow-hidden">
+                  <motion.video src={adminVideo} muted autoPlay loop playsInline className="w-full h-28 object-cover" whileHover={{ scale: 1.03 }} transition={{ duration: 0.5 }} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+                  <div className="absolute bottom-3 left-4 right-4">
+                    <p className="text-foreground font-display font-semibold text-sm flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-primary" /> "Empowering impact through data"</p>
                   </div>
-                  <span className="text-xs text-muted-foreground">{timeAgo(d.created_at)}</span>
                 </div>
-              ))}
-            </div>
+              </ScrollReveal>
 
-            {/* Quick actions */}
-            <div className="grid grid-cols-2 gap-3">
-              <motion.button whileTap={{ scale: 0.97 }} onClick={() => {
-                const csvContent = "Name,Phone,Joined\n" + users.map(u => `${u.display_name},${u.phone || "N/A"},${new Date(u.created_at).toLocaleDateString()}`).join("\n");
-                const blob = new Blob([csvContent], { type: "text/csv" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "users-report.csv";
-                a.click();
-                toast({ title: "📊 Report downloaded!" });
-              }} className="glass-card rounded-2xl p-4 flex items-center gap-3">
-                <Download className="w-5 h-5 text-primary" />
-                <span className="text-sm font-medium text-foreground">Export Users</span>
-              </motion.button>
-              <motion.button whileTap={{ scale: 0.97 }} onClick={() => {
-                const csvContent = "Title,Type,Qty,Status,Date\n" + donations.map(d => `${d.title},${d.food_type},${d.quantity},${d.status},${new Date(d.created_at).toLocaleDateString()}`).join("\n");
-                const blob = new Blob([csvContent], { type: "text/csv" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "donations-report.csv";
-                a.click();
-                toast({ title: "📊 Report downloaded!" });
-              }} className="glass-card rounded-2xl p-4 flex items-center gap-3">
-                <Download className="w-5 h-5 text-secondary" />
-                <span className="text-sm font-medium text-foreground">Export Donations</span>
-              </motion.button>
-            </div>
-          </motion.div>
-        )}
+              <ScrollReveal delay={0.2}>
+                <div className="glass-card-strong rounded-3xl p-5">
+                  <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2"><Activity className="w-4 h-4 text-primary" /> Recent Activity</h3>
+                  {donations.slice(0, 5).map((d, i) => (
+                    <motion.div key={d.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + i * 0.05 }} className={`flex items-center gap-3 py-3 ${i < 4 ? "border-b border-border" : ""}`}>
+                      <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }} className={`w-2 h-2 rounded-full ${d.status === "pending" ? "bg-secondary" : d.status === "delivered" ? "bg-primary" : "bg-muted-foreground"}`} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-foreground truncate">{d.title}</p>
+                        <p className="text-xs text-muted-foreground">{d.food_type} · {d.quantity} servings</p>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{timeAgo(d.created_at)}</span>
+                    </motion.div>
+                  ))}
+                </div>
+              </ScrollReveal>
 
-        {/* Users tab */}
-        {activeTab === "users" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search users..." className="w-full glass-card rounded-2xl pl-11 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40" />
-            </div>
-            {loading ? (
-              Array.from({ length: 3 }).map((_, i) => <div key={i} className="glass-card rounded-2xl p-4 h-16 skeleton-dark" />)
-            ) : filteredUsers.length === 0 ? (
-              <div className="text-center py-12"><Users className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-40" /><p className="text-sm text-muted-foreground">No users found</p></div>
-            ) : (
-              filteredUsers.map((u, i) => (
-                <motion.div key={u.user_id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }} className="glass-card rounded-2xl p-4 flex items-center gap-3">
+              <ScrollReveal delay={0.25}>
+                <div className="grid grid-cols-2 gap-3">
+                  <motion.button whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.97 }} onClick={() => exportCSV("users")} className="glass-card rounded-2xl p-4 flex items-center gap-3">
+                    <Download className="w-5 h-5 text-primary" />
+                    <span className="text-sm font-medium text-foreground">Export Users</span>
+                  </motion.button>
+                  <motion.button whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.97 }} onClick={() => exportCSV("donations")} className="glass-card rounded-2xl p-4 flex items-center gap-3">
+                    <Download className="w-5 h-5 text-secondary" />
+                    <span className="text-sm font-medium text-foreground">Export Donations</span>
+                  </motion.button>
+                </div>
+              </ScrollReveal>
+            </motion.div>
+          )}
+
+          {/* Users */}
+          {activeTab === "users" && (
+            <motion.div key="users" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }} className="space-y-3">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search users..." className="w-full glass-card rounded-2xl pl-11 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40" />
+              </div>
+              {loading ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="glass-card rounded-2xl p-4 h-16 skeleton-dark" />) :
+               filteredUsers.length === 0 ? <div className="text-center py-12"><Users className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-40" /><p className="text-sm text-muted-foreground">No users found</p></div> :
+               filteredUsers.map((u, i) => (
+                <motion.div key={u.user_id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }} whileHover={{ x: 4 }} className="glass-card rounded-2xl p-4 flex items-center gap-3 cursor-pointer">
                   <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold text-sm">{u.display_name?.[0]?.toUpperCase() || "U"}</div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{u.display_name}</p>
@@ -206,71 +211,61 @@ const AdminDashboard = () => {
                   </div>
                   <ChevronRight className="w-4 h-4 text-muted-foreground" />
                 </motion.div>
-              ))
-            )}
-          </motion.div>
-        )}
+              ))}
+            </motion.div>
+          )}
 
-        {/* Donations tab */}
-        {activeTab === "donations" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search donations..." className="w-full glass-card rounded-2xl pl-11 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40" />
-            </div>
-            {loading ? (
-              Array.from({ length: 3 }).map((_, i) => <div key={i} className="glass-card rounded-2xl p-4 h-16 skeleton-dark" />)
-            ) : filteredDonations.length === 0 ? (
-              <div className="text-center py-12"><Package className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-40" /><p className="text-sm text-muted-foreground">No donations found</p></div>
-            ) : (
-              filteredDonations.map((d, i) => (
-                <motion.div key={d.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }} className="glass-card rounded-2xl p-4 flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${d.status === "pending" ? "bg-secondary" : d.status === "delivered" ? "bg-primary" : "bg-accent"}`} />
+          {/* Donations */}
+          {activeTab === "donations" && (
+            <motion.div key="donations" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }} className="space-y-3">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search donations..." className="w-full glass-card rounded-2xl pl-11 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40" />
+              </div>
+              {loading ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="glass-card rounded-2xl p-4 h-16 skeleton-dark" />) :
+               filteredDonations.length === 0 ? <div className="text-center py-12"><Package className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-40" /><p className="text-sm text-muted-foreground">No donations found</p></div> :
+               filteredDonations.map((d, i) => (
+                <motion.div key={d.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }} whileHover={{ x: 4 }} className="glass-card rounded-2xl p-4 flex items-center gap-3 cursor-pointer">
+                  <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity, delay: i * 0.2 }} className={`w-3 h-3 rounded-full shrink-0 ${d.status === "pending" ? "bg-secondary" : d.status === "delivered" ? "bg-primary" : "bg-accent"}`} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{d.title}</p>
                     <p className="text-xs text-muted-foreground">{d.food_type} · {d.quantity} servings · {timeAgo(d.created_at)} ago</p>
                   </div>
                   <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${d.status === "delivered" ? "bg-primary/15 text-primary" : "bg-secondary/15 text-secondary"}`}>{d.status}</span>
                 </motion.div>
-              ))
-            )}
-          </motion.div>
-        )}
+              ))}
+            </motion.div>
+          )}
 
-        {/* Alerts tab */}
-        {activeTab === "alerts" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-            <div className="glass-card-strong rounded-3xl p-6 text-center">
-              <AlertTriangle className="w-10 h-10 text-secondary mx-auto mb-3" />
-              <h3 className="font-semibold text-foreground mb-1">System Alerts</h3>
-              <p className="text-sm text-muted-foreground">All systems operational. No critical alerts.</p>
-            </div>
-            <div className="glass-card rounded-2xl p-4 flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-primary" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-foreground">Database Health</p>
-                <p className="text-xs text-muted-foreground">All tables responding normally</p>
+          {/* Alerts */}
+          {activeTab === "alerts" && (
+            <motion.div key="alerts" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }} className="space-y-4">
+              <div className="glass-card-strong rounded-3xl p-6 text-center">
+                <motion.div animate={{ rotate: [0, 5, -5, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+                  <AlertTriangle className="w-10 h-10 text-secondary mx-auto mb-3" />
+                </motion.div>
+                <h3 className="font-semibold text-foreground mb-1">System Alerts</h3>
+                <p className="text-sm text-muted-foreground">All systems operational. No critical alerts.</p>
               </div>
-              <span className="text-xs text-primary font-medium">OK</span>
-            </div>
-            <div className="glass-card rounded-2xl p-4 flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-primary" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-foreground">Auth Service</p>
-                <p className="text-xs text-muted-foreground">Authentication running smoothly</p>
-              </div>
-              <span className="text-xs text-primary font-medium">OK</span>
-            </div>
-            <div className="glass-card rounded-2xl p-4 flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-primary" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-foreground">Storage</p>
-                <p className="text-xs text-muted-foreground">File uploads operational</p>
-              </div>
-              <span className="text-xs text-primary font-medium">OK</span>
-            </div>
-          </motion.div>
-        )}
+              {[
+                { label: "Database Health", sub: "All tables responding normally" },
+                { label: "Auth Service", sub: "Authentication running smoothly" },
+                { label: "Storage", sub: "File uploads operational" },
+              ].map((item, i) => (
+                <motion.div key={item.label} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.08 }} className="glass-card rounded-2xl p-4 flex items-center gap-3">
+                  <motion.div animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.3 }}>
+                    <CheckCircle2 className="w-5 h-5 text-primary" />
+                  </motion.div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-foreground">{item.label}</p>
+                    <p className="text-xs text-muted-foreground">{item.sub}</p>
+                  </div>
+                  <span className="text-xs text-primary font-medium">OK</span>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
