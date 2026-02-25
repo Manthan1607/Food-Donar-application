@@ -127,7 +127,7 @@ const Index = () => {
             transition={{ delay: 0.8 }}
             whileHover={{ scale: 1.05, boxShadow: "0 0 50px hsl(160 60% 45% / 0.5)" }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate(user ? "/select-role" : "/auth")}
+            onClick={() => navigate(user ? "/dashboard" : "/auth")}
             className="gradient-primary text-primary-foreground px-10 py-4 rounded-2xl font-semibold text-lg shadow-2xl flex items-center gap-3 glow-primary relative overflow-hidden group"
           >
             <span className="relative z-10 flex items-center gap-3">
@@ -284,7 +284,7 @@ const Index = () => {
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => navigate(user ? "/select-role" : "/auth")}
+          onClick={() => navigate(user ? "/dashboard" : "/auth")}
           className="w-full gradient-primary text-primary-foreground py-4 rounded-2xl font-semibold text-base shadow-2xl flex items-center justify-center gap-2 glow-primary"
         >
           <Heart className="w-5 h-5" />
