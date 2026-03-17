@@ -3,6 +3,8 @@ import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Bot, User, Loader2, Sparkles, Zap, Shield } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ReactMarkdown from "react-markdown";
+import { supabase } from "@/integrations/supabase/client";
+
 type Msg = { role: "user" | "assistant"; content: string };
 
 const quickActions = [
