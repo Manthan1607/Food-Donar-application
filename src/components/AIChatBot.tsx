@@ -3,10 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Bot, User, Loader2, Sparkles, Zap, Shield } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ReactMarkdown from "react-markdown";
-
-type Msg = { role: "user" | "assistant"; content: string };
-
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+import { supabase } from "@/integrations/supabase/client";
 
 const quickActions = [
   { label: "🍛 Food Safety Tips", prompt: "What are the best food safety tips for donating cooked food?" },
