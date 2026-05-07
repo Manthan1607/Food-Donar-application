@@ -10,8 +10,8 @@ import NgoView from "@/components/dashboard/NgoView";
 import VolunteerView from "@/components/dashboard/VolunteerView";
 import AdminView from "@/components/dashboard/AdminView";
 import MapTab from "@/components/dashboard/MapTab";
-import SOSButton from "@/components/SOSButton";
 import AIChatBot from "@/components/AIChatBot";
+import EmailVerifyBanner from "@/components/EmailVerifyBanner";
 import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
@@ -101,12 +101,12 @@ const Dashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
+            <EmailVerifyBanner />
             {showMap ? <MapTab /> : roleViews[currentRole]}
           </motion.div>
         </main>
       </motion.div>
 
-      <SOSButton />
       <AIChatBot />
     </div>
   );
