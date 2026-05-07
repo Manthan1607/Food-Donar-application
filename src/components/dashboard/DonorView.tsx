@@ -7,11 +7,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import StatsCard from "@/components/StatsCard";
 import donorVideo from "@/assets/donor-hero.mp4";
-import foodBiryani from "@/assets/food-biryani.jpg";
-import foodBread from "@/assets/food-bread.jpg";
-import foodDalRice from "@/assets/food-dal-rice.jpg";
-
-const defaultImages = [foodBiryani, foodBread, foodDalRice];
 
 const ScrollReveal = ({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => {
   const ref = useRef(null);
@@ -106,16 +101,24 @@ const DonorView = () => {
         </div>
         <div className="space-y-3">
           {donations.length === 0 ? (
-            <div className="glass-card rounded-2xl p-6 text-center">
-              <Utensils className="w-8 h-8 text-muted-foreground mx-auto mb-2 opacity-40" />
-              <p className="text-sm text-muted-foreground">No donations yet. Start sharing food! 🍽️</p>
+            <div className="glass-card rounded-2xl p-8 text-center">
+              <Utensils className="w-10 h-10 text-primary mx-auto mb-3 opacity-60" />
+              <p className="text-sm font-medium text-foreground mb-1">Your donations list is empty</p>
+              <p className="text-xs text-muted-foreground mb-4">Post your first donation and feed someone in need.</p>
+              <button onClick={() => navigate("/add-donation")} className="text-xs font-semibold px-4 py-2 rounded-full bg-primary/15 text-primary hover:bg-primary/25 transition-colors">
+                + Post a donation
+              </button>
             </div>
           ) : (
-            donations.map((donation, i) => (
+            donations.map((donation) => (
               <motion.div key={donation.id} whileHover={{ scale: 1.01, x: 4 }} className="glass-card rounded-2xl p-3 flex items-center justify-between group cursor-pointer">
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-xl overflow-hidden relative">
-                    <img src={defaultImages[i % defaultImages.length]} alt={donation.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  <div className="w-14 h-14 rounded-xl overflow-hidden relative bg-muted/30 flex items-center justify-center shrink-0">
+                    {donation.image_url ? (
+                      <img src={donation.image_url} alt={donation.title} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    ) : (
+                      <Utensils className="w-5 h-5 text-muted-foreground opacity-50" />
+                    )}
                   </div>
                   <div>
                     <p className="font-medium text-foreground text-sm">{donation.title}</p>

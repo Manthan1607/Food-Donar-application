@@ -104,9 +104,10 @@ const NgoView = () => {
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => <div key={i} className="glass-card rounded-2xl p-4 h-28 skeleton-dark" />)
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12">
-            <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-40" />
-            <p className="text-muted-foreground font-medium">No donations found</p>
+          <div className="text-center py-12 glass-card rounded-2xl">
+            <Package className="w-10 h-10 text-primary mx-auto mb-3 opacity-60" />
+            <p className="text-sm font-medium text-foreground">No donations yet</p>
+            <p className="text-xs text-muted-foreground mt-1">New food donations will appear here as donors post them.</p>
           </div>
         ) : (
           <AnimatePresence mode="popLayout">
