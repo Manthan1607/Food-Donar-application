@@ -37,6 +37,7 @@ const DashboardNavbar = ({ onMenuClick, sidebarCollapsed, displayName }: Dashboa
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={onMenuClick}
+            aria-label="Open menu"
             className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-muted/50 transition-colors md:hidden"
           >
             <Menu className="w-5 h-5 text-foreground" />
@@ -57,6 +58,7 @@ const DashboardNavbar = ({ onMenuClick, sidebarCollapsed, displayName }: Dashboa
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => navigate("/alerts")}
+            aria-label={unreadAlerts > 0 ? `Alerts (${unreadAlerts} unread)` : "Alerts"}
             className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-muted/50 transition-colors relative"
           >
             <Bell className="w-5 h-5 text-muted-foreground" />
@@ -71,6 +73,7 @@ const DashboardNavbar = ({ onMenuClick, sidebarCollapsed, displayName }: Dashboa
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => navigate("/profile")}
+            aria-label="Open profile"
             className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground text-sm font-bold"
           >
             {displayName?.[0]?.toUpperCase() || "U"}

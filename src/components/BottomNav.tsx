@@ -69,6 +69,7 @@ const BottomNav = () => {
           whileHover={{ scale: 1.08, boxShadow: "0 0 30px hsl(160 60% 45% / 0.4)" }}
           whileTap={{ scale: 0.95 }}
           onClick={() => navigate("/add-donation")}
+          aria-label="Add new donation"
           className="w-14 h-14 -mt-8 gradient-primary rounded-2xl flex items-center justify-center shadow-xl glow-primary relative"
         >
           <Plus className="w-7 h-7 text-primary-foreground" />
