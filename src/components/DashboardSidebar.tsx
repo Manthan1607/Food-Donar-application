@@ -54,10 +54,10 @@ const DashboardSidebar = ({
             </motion.div>
           )}
         </AnimatePresence>
-        <button onClick={onToggle} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-muted/50 transition-colors text-muted-foreground hidden md:flex">
+        <button onClick={onToggle} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-muted/50 transition-colors text-muted-foreground hidden md:flex">
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
-        <button onClick={onMobileClose} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-muted/50 transition-colors text-muted-foreground md:hidden">
+        <button onClick={onMobileClose} aria-label="Close menu" className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-muted/50 transition-colors text-muted-foreground md:hidden">
           <X className="w-4 h-4" />
         </button>
       </div>
