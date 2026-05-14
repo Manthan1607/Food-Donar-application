@@ -12,6 +12,7 @@ import AdminView from "@/components/dashboard/AdminView";
 import MapTab from "@/components/dashboard/MapTab";
 import AIChatBot from "@/components/AIChatBot";
 import EmailVerifyBanner from "@/components/EmailVerifyBanner";
+import { SEO } from "@/components/SEO";
 import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
