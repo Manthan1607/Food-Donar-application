@@ -1,0 +1,16 @@
+# FoodDonar
+
+> FoodDonar connects donors, NGOs, and volunteers to redistribute surplus food in real time, reducing waste and feeding communities.
+
+FoodDonar is a social-impact platform with a unified dashboard for four roles (Donor, NGO, Volunteer, Admin). It uses GPS matching, AI-powered spoilage prediction, and live tracking to move surplus food from where it is to where it's needed.
+
+## Pages
+
+- [Home](/): Mission, live impact stats, and how the platform works.
+- [Sign in or sign up](/auth): Email + password authentication for all roles.
+- [Onboarding](/onboarding): Quick walkthrough of the platform for new users.
+- [Forgot password](/forgot-password): Request a password-reset email.
+
+## Optional
+
+- [Reset password](/reset-password): Complete password reset (link from email).

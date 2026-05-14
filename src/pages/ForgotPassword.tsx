@@ -5,6 +5,7 @@ import { Mail, ArrowLeft, ArrowRight, KeyRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
+import { SEO } from "@/components/SEO";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -49,6 +50,12 @@ const ForgotPassword = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 relative">
+      <SEO
+        title="Reset your FoodDonar password"
+        description="Forgot your password? Enter your email and we'll send you a secure link to reset your FoodDonar account."
+        path="/forgot-password"
+      />
+      <h1 className="sr-only">Reset your FoodDonar password</h1>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-0 w-80 h-80 rounded-full bg-primary/8 blur-[100px] animate-ambient" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full bg-secondary/6 blur-[120px] animate-ambient" style={{ animationDelay: "-7s" }} />

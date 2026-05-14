@@ -12,3 +12,11 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /add-donation
+Disallow: /impact
+Disallow: /alerts
+Disallow: /profile
+Disallow: /reset-password
+
+Sitemap: https://fooddonar.lovable.app/sitemap.xml

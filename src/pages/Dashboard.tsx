@@ -12,6 +12,7 @@ import AdminView from "@/components/dashboard/AdminView";
 import MapTab from "@/components/dashboard/MapTab";
 import AIChatBot from "@/components/AIChatBot";
 import EmailVerifyBanner from "@/components/EmailVerifyBanner";
+import { SEO } from "@/components/SEO";
 import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
@@ -95,6 +96,12 @@ const Dashboard = () => {
 
         {/* Content */}
         <main className="flex-1 p-4 md:p-6 pb-24 max-w-4xl w-full mx-auto">
+          <SEO
+            title={`${currentRole.charAt(0).toUpperCase() + currentRole.slice(1)} dashboard — FoodDonar`}
+            description="Manage your FoodDonar activity: post or claim donations, coordinate volunteers, and track real-time impact."
+            path="/dashboard"
+          />
+          <h1 className="sr-only">FoodDonar {currentRole} dashboard</h1>
           <motion.div
             key={showMap ? "map" : currentRole}
             initial={{ opacity: 0, y: 10 }}

@@ -5,6 +5,7 @@ import { ArrowRight, Heart, MapPin, Camera, Sparkles } from "lucide-react";
 import heroImage from "@/assets/hero-food-sharing.jpg";
 import communityImg from "@/assets/community-volunteers.jpg";
 import impactImg from "@/assets/community-impact.jpg";
+import { SEO } from "@/components/SEO";
 
 const slides = [
   {
@@ -52,6 +53,12 @@ const Onboarding = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
+      <SEO
+        title="Welcome to FoodDonar — getting started"
+        description="See how FoodDonar matches surplus food with nearby NGOs and volunteers in real time. A 30-second walkthrough."
+        path="/onboarding"
+      />
+      <h1 className="sr-only">Getting started with FoodDonar</h1>
       {/* Background image */}
       <AnimatePresence mode="wait">
         <motion.div key={currentSlide} initial={{ opacity: 0, scale: 1.1 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }} className="absolute inset-0">

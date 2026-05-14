@@ -6,6 +6,7 @@ import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
+import { SEO } from "@/components/SEO";
 
 const signupSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(80),
@@ -81,6 +82,12 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 relative">
+      <SEO
+        title={isLogin ? "Sign in to FoodDonar" : "Create your FoodDonar account"}
+        description={isLogin ? "Sign in to FoodDonar to share surplus food, claim donations, and coordinate volunteers in real time." : "Create a free FoodDonar account as a donor, NGO, or volunteer and start reducing food waste in your community."}
+        path="/auth"
+      />
+      <h1 className="sr-only">{isLogin ? "Sign in to FoodDonar" : "Create your FoodDonar account"}</h1>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-0 w-80 h-80 rounded-full bg-primary/8 blur-[100px] animate-ambient" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full bg-secondary/6 blur-[120px] animate-ambient" style={{ animationDelay: "-7s" }} />
