@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Lock, ArrowRight, Check, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { SEO } from "@/components/SEO";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -62,6 +63,12 @@ const ResetPassword = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 relative">
+      <SEO
+        title="Set a new FoodDonar password"
+        description="Create a new password for your FoodDonar account and get back to sharing food in seconds."
+        path="/reset-password"
+      />
+      <h1 className="sr-only">Set a new FoodDonar password</h1>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-0 w-80 h-80 rounded-full bg-primary/8 blur-[100px] animate-ambient" />
       </div>

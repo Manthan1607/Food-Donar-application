@@ -8,6 +8,7 @@ import heroVideo from "@/assets/hero-cinematic.mp4";
 import heroBanner from "@/assets/hero-banner.jpg";
 import communityImg from "@/assets/community-volunteers.jpg";
 import impactImg from "@/assets/community-impact.jpg";
+import { SEO } from "@/components/SEO";
 
 const features = [
   { icon: Utensils, title: "Share Food", desc: "Donate surplus meals to those in need", color: "text-primary", bg: "bg-primary/15", delay: 0 },
@@ -52,6 +53,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden">
+      <SEO
+        title="FoodDonar — From Excess to Everyone"
+        description="Connect surplus food with people who need it most. Real-time GPS matching, AI-powered spoilage alerts, and a community of NGOs and volunteers."
+        path="/"
+      />
       {/* ═══ HERO ═══ */}
       <section ref={heroRef} className="relative h-[100vh] overflow-hidden">
         {/* Video with parallax zoom */}
